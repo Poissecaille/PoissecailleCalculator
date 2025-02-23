@@ -1,4 +1,6 @@
 from sqlmodel import Session
+
+from backend.logger import logger
 from .models.evaluation import Evaluation
 from .models.expression import Expression
 
@@ -7,14 +9,14 @@ def evaluate_rpn_expression(expression: str) -> float:
     """Evaluate a RPN(Reverse Polish Notation) expression."""
     stack = []
     operators = {"+", "-", "*", "/"}
-    print("expression: ", expression)
+    logger.debug("expression: ", expression)
     for char in expression.strip().replace(" ", ""):
         if char in operators:
             if len(stack) < 2:
                 raise ValueError("Not enough operands. Cannot evaluate expression.")
             b = stack.pop()
             a = stack.pop()
-
+            logger.debug("a: ", a, "b: ", b)
             if char == "+":
                 stack.append(a + b)
             elif char == "-":
@@ -30,16 +32,10 @@ def evaluate_rpn_expression(expression: str) -> float:
                 stack.append(float(char))
             except ValueError:
                 raise ValueError(f" : {char}")
-    print("stack: ", stack)
+    logger.debug("stack: ", stack)
     if len(stack) != 1:
         raise ValueError("Invalid expression. Cannot evaluate expression.")
     return stack[0]
-
-
-# expression = "3 4 + 2 * 7 /"
-# expression = "10+3+"
-# result = evaluate_rpn_expression(expression)
-# print(f"Résultat : {result}")
 
 
 def save_expression(session: Session, expression: Expression) -> None:

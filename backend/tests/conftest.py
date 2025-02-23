@@ -13,14 +13,6 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 def db_session():
     """Crée une session SQLAlchemy réelle pour chaque test"""
 
-    # Vérifie et ferme la connexion avant de supprimer la base
-    if os.path.exists("test_database.db"):
-        try:
-            engine.dispose()  # 🔥 Ferme les connexions actives
-            os.remove("test_database.db")  # Supprime proprement
-        except PermissionError:
-            print("⚠️ Impossible de supprimer test_database.db, il est encore utilisé !")
-
     SQLModel.metadata.create_all(engine)  # Crée les tables
 
     session = Session(engine)

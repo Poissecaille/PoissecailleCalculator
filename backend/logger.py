@@ -7,7 +7,6 @@ if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
 LOG_FILE = os.path.join(os.getcwd(), LOG_DIR, "app.log")
-print("LOG_FILE: ", LOG_FILE)
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
