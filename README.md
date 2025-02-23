@@ -45,3 +45,28 @@
 ```bash
    $env:TESTING="true"; pytest tests/ -v
    ```
+6. **Documentation de l'API**
+**Swagger UI**
+   - http://localhost:8000/docs
+
+## FRONTEND
+- **Prérequis**
+   - Node.js
+   - npm (gestionnaire de paquets Node.js)
+- **Installation des dépendances**
+```bash
+   npm install
+   ```
+- **Lancement du serveur de développement**
+```bash
+   npm start
+   ```
+## DOCKER
+- **Prérequis**
+   - Docker
+   - Docker Compose is located at the root of the project
+- **Création des images et conteneurs**
+- **Lancement des services**
+```bash
+   docker-compose up --build
+   ```
