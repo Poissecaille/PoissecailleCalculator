@@ -22,4 +22,4 @@ export const isValidRPNExpression = (expression: string): boolean => {
   return stack.length === 1;
 }
 
-export const isOperator = (value: string) => ['+', '-', '×', '÷'].includes(value);
+export const isOperator = (value: string) => ['+', '-', '*', '/'].includes(value);

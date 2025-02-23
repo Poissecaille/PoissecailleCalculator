@@ -1,13 +1,14 @@
 from sqlmodel import Session
-from models.evaluation import Evaluation
-from models.expression import Expression
+from .models.evaluation import Evaluation
+from .models.expression import Expression
 
 
 def evaluate_rpn_expression(expression: str) -> float:
     """Evaluate a RPN(Reverse Polish Notation) expression."""
     stack = []
     operators = {"+", "-", "*", "/"}
-    for char in expression.strip().split():
+    print("expression: ", expression)
+    for char in expression.strip().replace(" ", ""):
         if char in operators:
             if len(stack) < 2:
                 raise ValueError("Not enough operands. Cannot evaluate expression.")
@@ -35,9 +36,10 @@ def evaluate_rpn_expression(expression: str) -> float:
     return stack[0]
 
 
-expression = "3 4 + 2 * 7 /"
-result = evaluate_rpn_expression(expression)
-print(f"Résultat : {result}")
+# expression = "3 4 + 2 * 7 /"
+# expression = "10+3+"
+# result = evaluate_rpn_expression(expression)
+# print(f"Résultat : {result}")
 
 
 def save_expression(session: Session, expression: Expression) -> None:
@@ -47,11 +49,8 @@ def save_expression(session: Session, expression: Expression) -> None:
     session.refresh(expression)
 
 
-def save_evaluation(
-    session: Session, expression: Expression, evaluation: Evaluation
-) -> None:
+def save_evaluation(session: Session, evaluation: Evaluation) -> None:
     """Save an expression related evaluation in the database."""
-    evaluation = Evaluation(expressionId=expression.id, value=evaluation.value)
     session.add(evaluation)
     session.commit()
     session.refresh(evaluation)

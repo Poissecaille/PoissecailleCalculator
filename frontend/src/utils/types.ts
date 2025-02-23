@@ -1,6 +1,7 @@
 export interface CalculatorState {
-  display: string;
+  previousNumber: string;
   currentNumber: string;
+  previousResult: string;
 }
 
 export interface ServerResponse {

@@ -28,4 +28,4 @@ class ResponseText(Enum):
 class ServerResponse:
     code: ResponseCode
     value: ResponseText
-    data: Optional[float] = None
+    data: Optional[float | dict] = None

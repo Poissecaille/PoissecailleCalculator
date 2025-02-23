@@ -5,9 +5,9 @@ import { ServerResponse } from "./utils/types";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-export const evaluateExpression = async (expression: string): Promise<ServerResponse> => {
+export const evaluateExpression = async (value: string): Promise<ServerResponse> => {
   try {
-    const response = await axios.post<ServerResponse>(`${API_BASE_URL}/evaluate`, { expression });
+    const response = await axios.post<ServerResponse>(`${API_BASE_URL}/evaluate`, { value });
     return response.data as ServerResponse;
   } catch (err) {
     const errors = err as Error | AxiosError;

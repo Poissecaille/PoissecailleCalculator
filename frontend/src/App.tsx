@@ -5,13 +5,14 @@ import { CalculatorState } from './utils/types';
 import { isOperator } from './utils/functions';
 // Store useless here we can keep the component state inside the component itself for a small project
 const initialState: CalculatorState = {
-  display: '',
   currentNumber: '',
+  previousNumber: '',
+  previousResult: '',
 };
 
 const buttons = [
-  ['7', '8', '9', '÷'],
-  ['4', '5', '6', '×'],
+  ['7', '8', '9', '/'],
+  ['4', '5', '6', '*'],
   ['1', '2', '3', '-'],
   ['0', '.', '=', '+'],
 ];
@@ -21,43 +22,51 @@ const App = () => {
   const [error, setError] = useState<string | null>(null);
   // const [loading, setLoading] = useState(false);
 
+  const displayErrorWithTimeout = (message: string) => {
+    setError(message);
+    handleClear();
+    setTimeout(() => {
+      setError(null);
+    }, 3000);
+  };
 
   const handleButtonClick = async (value: string) => {
-    if (value === '=' && state.display && state.currentNumber) {
-      const expression = `${state.currentNumber} ${state.display}`;
-      console.log("--------------------")
-      console.log(expression)
-      console.log("--------------------")
+    console.log("Value is", value)
+    if (value === '=' && state.currentNumber) {
 
       try {
-        const response = await evaluateExpression(expression);
+        const response = await evaluateExpression(state.currentNumber);
 
         if (response.code > 201) {
-          setError(error);
+          displayErrorWithTimeout('Une erreur est survenue lors du calcul');
+          setState(({
+            currentNumber: '',
+            previousNumber: state.previousNumber,
+            previousResult: state.previousResult,
+          }));
         } else {
           setState({
-            display: response.data!.toString(),
             currentNumber: '',
+            previousNumber: state.currentNumber,
+            previousResult: response.data!.toString(),
           });
         }
       } catch (error) {
         console.log(error);
-        setError('Une erreur est survenue lors du calcul')
+        displayErrorWithTimeout('Une erreur est survenue lors du calcul')
       }
     }
-    console.log("Value is operator", isOperator(value))
-    if (!isOperator(value)) {
-      setState(prev => ({
-        ...prev,
-        display: prev.display + value,
-        error: null,
-      }));
-    }
-    if (isOperator(value)) {
-
-      setState(prev => ({
-        currentNumber: prev.display + value,
-        display: prev.display + value,
+    // if (!isOperator(value)) {
+    //   setState(prev => ({
+    //     ...prev,
+    //     display: prev.display + value,
+    //   }));
+    // }
+    else {
+      setState(({
+        currentNumber: state.currentNumber + value,
+        previousNumber: state.previousNumber,
+        previousResult: state.previousResult,
       }));
 
     }
@@ -68,14 +77,20 @@ const App = () => {
   };
 
   const handleBackspace = () => {
-    setState(prev => ({
-      ...prev,
-      display: prev.display.slice(0, -1),
-    }));
+    console.log("State before backspace:", state);
+    setState(prev => {
+      const newState = {
+        ...prev,
+        currentNumber: prev.currentNumber.slice(0, -1),
+      };
+      console.log("State after backspace:", newState);
+      return newState;
+    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-900 flex items-center justify-center p-4">
+      {`currentNumber:${state.currentNumber} previousNumber:${state.previousNumber} previousResult:${state.previousResult}`}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="bg-black p-4 flex items-center justify-between">
@@ -95,15 +110,15 @@ const App = () => {
         {/* Main Display */}
         <div className="p-4 bg-gray-100">
           <div className="flex flex-col bg-white p-4 rounded-lg shadow-inner mb-4">
-            {state.currentNumber && (
+            {state.previousResult && (
               <div className="text-right text-gray-500 text-sm mb-1">
-                {state.currentNumber} { }
+                {`${state.previousNumber} = ${state.previousResult}`}
               </div>
             )}
             <div className="flex items-center justify-between">
               <input
                 type="text"
-                value={state.display}
+                value={state.currentNumber}
                 readOnly
                 className="text-right text-2xl font-medium w-full bg-transparent outline-none"
                 placeholder="0"
@@ -134,9 +149,9 @@ const App = () => {
                     onClick={() => handleButtonClick(button)}
                     className={`p-4 text-xl font-medium rounded-lg transition-all active:scale-95
                       ${button === '='
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : isOperator(button)
-                          ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                          ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >

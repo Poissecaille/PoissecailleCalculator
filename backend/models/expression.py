@@ -5,8 +5,10 @@ from datetime import datetime
 
 
 class Expression(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
     id: str = Field(
-        default=str(uuid4()),
+        ...,
         primary_key=True,
         description="Id technique de l'expression",
     )
