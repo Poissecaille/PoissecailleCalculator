@@ -13,7 +13,7 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 def db_session():
     """Crée une session SQLAlchemy réelle pour chaque test"""
 
-    # ✅ Vérifie et ferme la connexion avant de supprimer la base
+    # Vérifie et ferme la connexion avant de supprimer la base
     if os.path.exists("test_database.db"):
         try:
             engine.dispose()  # 🔥 Ferme les connexions actives
@@ -27,7 +27,7 @@ def db_session():
     app.dependency_overrides[SessionDep] = lambda: session
     yield session
 
-    session.close()  # ✅ Ferme la session proprement
+    session.close()  # Ferme la session proprement
     app.dependency_overrides.clear()
 
 

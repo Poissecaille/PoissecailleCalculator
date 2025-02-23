@@ -3,14 +3,14 @@ version: "3.8"
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: . # Le contexte est `PoissecailleCalculator`
+      dockerfile: backend/Dockerfile # Spécifie le bon Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - backend_db:/app/db
-      - backend_logs:/app/logs
-      - ./backend:/app
+      - ./backend/db:/app/db
+      - ./backend/logs:/app/logs
+
     environment:
       - TESTING=false
     command:
@@ -29,7 +29,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "5173:80"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -37,7 +37,6 @@ services:
       - VITE_BACKEND_URL=http://backend:8000
     depends_on:
       - backend
-    command: ["npm", "run", "dev", "--", "--host"]
 
 volumes:
   backend_db:

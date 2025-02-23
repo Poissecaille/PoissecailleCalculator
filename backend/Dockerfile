@@ -1,22 +1,21 @@
 FROM python:3.12
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier uniquement requirements.txt et installer les dépendances
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend /app/backend
 
-# Copier tout le contenu du projet dans /app
-COPY . /app/
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Définir les volumes pour la base de données et les logs
-VOLUME ["/app/db", "/app/logs"]
+# Donner les droits d'exécution au script
+RUN chmod +x /app/backend/entrypoint.sh
 
-# Définir le PYTHONPATH pour que Python trouve bien les modules
-ENV PYTHONPATH=/app
+# Utiliser le script comme point d'entrée
+ENTRYPOINT ["/app/backend/entrypoint.sh"]
+
+# Définir un volume pour la base de données et les logs
+VOLUME ["/app/backend/volume/db", "/app/backend/volume/logs"]
 
 EXPOSE 8000
 
-# Lancer l'application FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# NOTE deja une commande dans le fichier compose
+# CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

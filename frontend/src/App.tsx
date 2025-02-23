@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
-import { Calculator, RotateCcw, Delete } from 'lucide-react';
-import { evaluateExpression } from './api';
+import { Calculator, RotateCcw, Delete, Download } from 'lucide-react';
+import { evaluateExpression, exportCalculationsCSV } from './api';
 import { CalculatorState } from './utils/types';
 import { isOperator } from './utils/functions';
-// Store useless here we can keep the component state inside the component itself for a small project
+// NOTE Store useless here we can keep the component state inside the component itself for a small project
+// NOTE No need for nested component here
 const initialState: CalculatorState = {
   currentNumber: '',
   previousNumber: '',
@@ -20,7 +22,8 @@ const buttons = [
 const App = () => {
   const [state, setState] = useState<CalculatorState>(initialState);
   const [error, setError] = useState<string | null>(null);
-  // const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
 
   const displayErrorWithTimeout = (message: string) => {
     setError(message);
@@ -31,14 +34,12 @@ const App = () => {
   };
 
   const handleButtonClick = async (value: string) => {
-    console.log("Value is", value)
     if (value === '=' && state.currentNumber) {
-
       try {
         const response = await evaluateExpression(state.currentNumber);
 
         if (response.code > 201) {
-          displayErrorWithTimeout('Une erreur est survenue lors du calcul');
+          displayErrorWithTimeout('Une erreur est survenue lors du calcul veuillez revoir votre notation NPI');
           setState(({
             currentNumber: '',
             previousNumber: state.previousNumber,
@@ -52,45 +53,55 @@ const App = () => {
           });
         }
       } catch (error) {
-        console.log(error);
-        displayErrorWithTimeout('Une erreur est survenue lors du calcul')
+        displayErrorWithTimeout('Une erreur est survenue lors du calcul veuillez revoir votre notation NPI')
       }
     }
-    // if (!isOperator(value)) {
-    //   setState(prev => ({
-    //     ...prev,
-    //     display: prev.display + value,
-    //   }));
-    // }
     else {
       setState(({
         currentNumber: state.currentNumber + value,
         previousNumber: state.previousNumber,
         previousResult: state.previousResult,
       }));
-
     }
-
   }
   const handleClear = () => {
     setState(initialState);
   };
 
   const handleBackspace = () => {
-    console.log("State before backspace:", state);
     setState(prev => {
       const newState = {
         ...prev,
         currentNumber: prev.currentNumber.slice(0, -1),
       };
-      console.log("State after backspace:", newState);
       return newState;
     });
+  };
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await exportCalculationsCSV();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `calculations-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: 'Erreur lors de l\'export CSV',
+      }));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-900 flex items-center justify-center p-4">
-      {`currentNumber:${state.currentNumber} previousNumber:${state.previousNumber} previousResult:${state.previousResult}`}
+      {/* {`currentNumber:${state.currentNumber} previousNumber:${state.previousNumber} previousResult:${state.previousResult}`} */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="bg-black p-4 flex items-center justify-between">
@@ -98,13 +109,25 @@ const App = () => {
             <Calculator className="text-white" size={24} />
             <h1 className="text-xl font-bold text-white">Calculatrice NPI</h1>
           </div>
-          <button
-            onClick={handleClear}
-            className="p-2 text-white hover:text-gray-300 transition-colors"
-            title="Tout effacer"
-          >
-            <RotateCcw size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className={`p-2 text-white hover:text-gray-300 transition-colors relative ${isExporting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              title="Exporter l'historique (CSV)"
+            >
+              <Download size={20} className={isExporting ? 'animate-bounce' : ''} />
+            </button>
+            <button
+              onClick={handleClear}
+              className="p-2 text-white hover:text-gray-300 transition-colors"
+              title="Tout effacer"
+            >
+              <RotateCcw size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Main Display */}

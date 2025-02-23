@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import io
 import csv
 import os
@@ -19,7 +20,14 @@ origins = [
     "http://localhost:5173",
 ]
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -32,7 +40,7 @@ app.add_middleware(
 is_testing = os.getenv("TESTING", "false") == "true"
 
 sqlite_file_name = "test_database.db" if is_testing else "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+sqlite_url = f"sqlite:///db/{sqlite_file_name}"
 engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
 
@@ -106,7 +114,7 @@ def create_expression(expression: Expression, session: SessionDep):
 @app.get("/evaluation/{evaluation_id}", response_model=ServerResponse)
 def get_evaluation(evaluation_id: str, session: SessionDep):
     """Récupère l'évaluation d'une expression par son ID"""
-    logger.info(f"🔍 Recherche de l'évaluation ID: {evaluation_id}")
+    logger.info(f" Recherche de l'évaluation ID: {evaluation_id}")
     try:
         expression_evaluation = session.exec(
             select(Evaluation, Expression)
@@ -152,7 +160,7 @@ def get_evaluation(evaluation_id: str, session: SessionDep):
 @app.get("/fetchData")
 def get_all_evaluations(session: SessionDep):
     """Export toutes les évaluations en CSV"""
-    logger.info("📤 Export des données en CSV...")
+    logger.info("Export des données en CSV...")
     # NOTE possibilité de mettre un mécanisme de pagination pour gros volumes de données
     try:
         expression_evaluations = session.exec(
