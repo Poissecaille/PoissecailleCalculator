@@ -17,7 +17,7 @@ from backend.utils import evaluate_rpn_expression, save_evaluation, save_express
 from backend.logger import logger
 
 origins = [
-    "http://localhost:5173",
+    "http://0.0.0.0:5173",
 ]
 
 
@@ -75,7 +75,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 @app.post("/evaluate", response_model=ServerResponse)
 def create_expression(expression: Expression, session: SessionDep):
     """Évalue une expression en notation polonaise inverse (RPN)"""
-    logger.info(f"📥 Réception d'une nouvelle expression: {expression.value}")
+    logger.info(f"Réception d'une nouvelle expression: {expression.value}")
 
     try:
         expression.id = str(uuid4())
@@ -97,7 +97,7 @@ def create_expression(expression: Expression, session: SessionDep):
         save_evaluation(session, evaluation)
         logger.info(f"Expression évaluée: {evaluation.value} (ID: {evaluation.id})")
     except Exception as db_err:
-        logger.exception("Erreur lors de l'enregistrement dans la base de données !")
+        logger.error("Erreur lors de l'enregistrement dans la base de données !")
         session.rollback()
         raise HTTPException(
             status_code=ResponseCode.INTERNAL_ERROR.value,
@@ -122,7 +122,7 @@ def get_evaluation(evaluation_id: str, session: SessionDep):
             .where(Evaluation.id == evaluation_id)
         ).first()
     except Exception:
-        logger.exception("Erreur lors de la récupération d'une évaluation !")
+        logger.error("Erreur lors de la récupération d'une évaluation !")
         raise HTTPException(
             status_code=ResponseCode.INTERNAL_ERROR.value,
             detail=ResponseText.INTERNAL_ERROR.value,
@@ -215,7 +215,7 @@ def get_all_evaluations(session: SessionDep):
         )
 
     except Exception:
-        logger.exception("Erreur lors de l'export des évaluations !")
+        logger.error("Erreur lors de l'export des évaluations !")
         raise HTTPException(
             status_code=ResponseCode.INTERNAL_ERROR.value,
             detail=ResponseText.INTERNAL_ERROR.value,
