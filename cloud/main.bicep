@@ -24,10 +24,22 @@ param backendAppName string
 @description('The name of the App Service Plan')
 param appServicePlanName string
 
+@description('The name of the Azure Container Registry')
+param acrName string
+
 // Création du groupe de ressources (Scope: Subscription)
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   name: resourceGroupName
   location: location
+}
+
+module acr 'acr.bicep' = {
+  name: acrName
+  scope: resourceGroup
+  params: {
+    location: location
+    acrName: acrName
+  }
 }
 
 module appServicePlan 'appServicePlan.bicep' = {
@@ -38,6 +50,7 @@ module appServicePlan 'appServicePlan.bicep' = {
     appServicePlanName: appServicePlanName
   }
 }
+
 module backend 'backend.bicep' = {
   name: 'backend-deployment'
   scope: resourceGroup
@@ -45,6 +58,7 @@ module backend 'backend.bicep' = {
     frontendAppName: frontendAppName
     backendAppName: backendAppName
     appServicePlanId: appServicePlan.outputs.appServicePlanId
+    acrLoginServer: acr.outputs.loginServer
   }
 }
 
@@ -56,6 +70,7 @@ module frontend 'frontend.bicep' = {
     environment: environment
     frontendAppName: frontendAppName
     appServicePlanId: appServicePlan.outputs.appServicePlanId
+    acrLoginServer: acr.outputs.loginServer
   }
 }
 

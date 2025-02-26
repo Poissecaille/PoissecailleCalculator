@@ -10,6 +10,8 @@ param backendAppName string
 @description('The ID of the app service plan')
 param appServicePlanId string
 
+@description('The name of the Azure Container Registry')
+param acrLoginServer string
 // // App Service Plan (for both frontend and backend)
 // resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 //   name: appServicePlanName
@@ -23,7 +25,6 @@ param appServicePlanId string
 //   }
 //   kind: 'linux'
 // }
-
 // Backend Web App
 resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
   name: backendAppName
@@ -32,7 +33,8 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
     serverFarmId: appServicePlanId
     siteConfig: {
       // linuxFxVersion: 'PYTHON|3.12'
-      linuxFxVersion: 'DOCKER|myacr.azurecr.io/backend:latest'
+      // linuxFxVersion: 'DOCKER|myacr.azurecr.io/backend:latest'
+      linuxFxVersion: 'DOCKER|${acrLoginServer}/${backendAppName}:latest'
       alwaysOn: true
       cors: {
         allowedOrigins: [
@@ -47,6 +49,10 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'DATABASE_URL'
           value: '/mnt/sqlite/db.sqlite'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: 'https://${acrLoginServer}'
         }
       ]
       // azureStorageAccounts: [
