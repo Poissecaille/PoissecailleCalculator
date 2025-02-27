@@ -28,7 +28,7 @@ resource frontendApp 'Microsoft.Web/sites@2024-04-01' = {
     siteConfig: {
       // linuxFxVersion: 'NODE|20-lts'
       // linuxFxVersion: 'DOCKER|myacr.azurecr.io/frontend:latest'
-      linuxFxVersion: 'DOCKER|${acrLoginServer}/${frontendAppName}:latest'
+      linuxFxVersion: 'DOCKER|${acrLoginServer}/frontend:latest'
       alwaysOn: true
       appSettings: [
         {

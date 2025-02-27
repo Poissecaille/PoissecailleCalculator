@@ -12,6 +12,16 @@ param appServicePlanId string
 
 @description('The name of the Azure Container Registry')
 param acrLoginServer string
+
+@description('The storage account name')
+param storageAccountName string
+
+@description('The file share name')
+param fileShareName string
+
+@description('The storage account key')
+param storageAccountKey string
+
 // // App Service Plan (for both frontend and backend)
 // resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 //   name: appServicePlanName
@@ -29,12 +39,15 @@ param acrLoginServer string
 resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
   name: backendAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
       // linuxFxVersion: 'PYTHON|3.12'
       // linuxFxVersion: 'DOCKER|myacr.azurecr.io/backend:latest'
-      linuxFxVersion: 'DOCKER|${acrLoginServer}/${backendAppName}:latest'
+      linuxFxVersion: 'DOCKER|${acrLoginServer}/backend:latest'
       alwaysOn: true
       cors: {
         allowedOrigins: [
@@ -48,26 +61,26 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'DATABASE_URL'
-          value: '/mnt/sqlite/db.sqlite'
+          value: '/app/db'
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${acrLoginServer}'
         }
       ]
-      // azureStorageAccounts: [
-      //   {
-      //     name: 'sqlitevolume'
-      //     type: 'AzureFiles'
-      //     accountName: storageAccount.name
-      //     shareName: fileShareName
-      //     mountPath: '/mnt/sqlite'
-      //     accessKey: storageAccount.listKeys().keys[0].value
-      //   }
-      // ]
+      azureStorageAccounts: {
+        sqlitevolume: {
+          type: 'AzureFiles'
+          accountName: storageAccountName
+          shareName: fileShareName
+          mountPath: '/app/db'
+          accessKey: storageAccountKey
+        }
+      }
     }
   }
 }
 
 // Outputs
 output backendUrl string = 'https://${backendApp.properties.defaultHostName}'
+output backendPrincipalId string = backendApp.identity.principalId
