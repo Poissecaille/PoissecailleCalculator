@@ -16,6 +16,13 @@ param appServicePlanId string
 @description('The name of the Azure Container Registry')
 param acrLoginServer string
 
+@description('The username of the Azure Container Registry')
+param acrName string
+
+@secure()
+@description('The password of the Azure Container Registry')
+param acrPassword string
+
 // Variables for naming convention
 var prefix = '${projectName}-${environment}'
 var backendAppName = '${prefix}-backend'
@@ -38,6 +45,14 @@ resource frontendApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${acrLoginServer}'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+          value: acrName
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+          value: acrPassword
         }
       ]
     }

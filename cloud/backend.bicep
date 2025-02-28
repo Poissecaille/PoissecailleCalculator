@@ -13,16 +13,20 @@ param appServicePlanId string
 @description('The name of the Azure Container Registry')
 param acrLoginServer string
 
-@description('The storage account name')
+@description('The name of the storage account')
 param storageAccountName string
 
-@description('The file share name')
+@description('The name of the file share')
 param fileShareName string
 
-@description('The storage account key')
-param storageAccountKey string
+@description('The username of the Azure Container Registry')
+param acrName string
 
-// // App Service Plan (for both frontend and backend)
+@secure()
+@description('The password of the Azure Container Registry')
+param acrPassword string
+
+// App Service Plan (for both frontend and backend)
 // resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 //   name: appServicePlanName
 //   location: location
@@ -35,6 +39,32 @@ param storageAccountKey string
 //   }
 //   kind: 'linux'
 // }
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+}
+
+// Récupération des clés du compte de stockage
+var storageAccountKey = storageAccount.listKeys().keys[0].value
+
+resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-05-01' = {
+  parent: fileService
+  name: fileShareName
+  properties: {
+    accessTier: 'TransactionOptimized'
+  }
+}
+
 // Backend Web App
 resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
   name: backendAppName
@@ -45,8 +75,6 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
-      // linuxFxVersion: 'PYTHON|3.12'
-      // linuxFxVersion: 'DOCKER|myacr.azurecr.io/backend:latest'
       linuxFxVersion: 'DOCKER|${acrLoginServer}/backend:latest'
       alwaysOn: true
       cors: {
@@ -64,8 +92,24 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
           value: '/app/db'
         }
         {
+          name: 'TESTING'
+          value: 'false'
+        }
+        {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${acrLoginServer}'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+          value: acrName
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+          value: acrPassword
+        }
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'true'
         }
       ]
       azureStorageAccounts: {

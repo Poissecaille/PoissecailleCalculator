@@ -18,4 +18,4 @@ VOLUME ["/app/backend/volume/db", "/app/backend/volume/logs"]
 EXPOSE 8000
 
 # NOTE deja une commande dans le fichier compose
-# CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

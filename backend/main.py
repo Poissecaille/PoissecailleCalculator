@@ -17,7 +17,8 @@ from backend.utils import evaluate_rpn_expression, save_evaluation, save_express
 from backend.logger import logger
 
 origins = [
-    "http://0.0.0.0:5173",
+    "https://poissecaillecalculator-frontend.azurewebsites.net",
+    "http://localhost:5173",
 ]
 
 
@@ -32,7 +33,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["OPTION,GET,POST"],
+    allow_methods=["OPTIONS", "GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
