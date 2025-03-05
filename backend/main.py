@@ -17,8 +17,9 @@ from backend.utils import evaluate_rpn_expression, save_evaluation, save_express
 from backend.logger import logger
 
 origins = [
-    "https://poissecaillecalculator-frontend.azurewebsites.net",
-    "http://localhost:5173",
+    # "https://poissecaillecalculator-frontend.azurewebsites.net",
+    # "http://localhost:5173",
+    "*",
 ]
 
 
@@ -33,15 +34,19 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["OPTIONS", "GET", "POST", "PUT", "DELETE"],
+    # allow_methods=["OPTIONS", "GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
 is_testing = os.getenv("TESTING", "false") == "true"
 
 sqlite_file_name = "test_database.db" if is_testing else "database.db"
-sqlite_url = f"sqlite:///db/{sqlite_file_name}"
+sqlite_url = f"sqlite:///backend/db/{sqlite_file_name}"
+print(f"SQLite URL: {sqlite_url}")
+logger.debug(f"SQLite URL: {sqlite_url}")
 engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
 
@@ -98,7 +103,9 @@ def create_expression(expression: Expression, session: SessionDep):
         save_evaluation(session, evaluation)
         logger.info(f"Expression évaluée: {evaluation.value} (ID: {evaluation.id})")
     except Exception as db_err:
-        logger.error("Erreur lors de l'enregistrement dans la base de données !")
+        logger.error(
+            f"Erreur lors de l'enregistrement dans la base de données : {db_err}"
+        )
         session.rollback()
         raise HTTPException(
             status_code=ResponseCode.INTERNAL_ERROR.value,

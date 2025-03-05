@@ -30,6 +30,9 @@ var backendAppName = '${prefix}-backend'
 resource frontendApp 'Microsoft.Web/sites@2024-04-01' = {
   name: frontendAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
@@ -59,3 +62,4 @@ resource frontendApp 'Microsoft.Web/sites@2024-04-01' = {
   }
 }
 output frontendUrl string = 'https://${frontendApp.properties.defaultHostName}'
+output frontendPrincipalId string = frontendApp.identity.principalId

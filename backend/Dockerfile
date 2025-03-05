@@ -1,21 +1,24 @@
 FROM python:3.12
 
+# Créer la structure du projet
 WORKDIR /app
+RUN mkdir -p /app/backend/db /app/backend/logs
 
-COPY backend /app/backend
+# Copier les fichiers du projet
+COPY . /app
 
+# Installer les dépendances
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Donner les droits d'exécution au script
-RUN chmod +x /app/backend/entrypoint.sh
+# Permissions des répertoires de données
+RUN chmod -R 777 /app/backend/db /app/backend/logs
 
-# Utiliser le script comme point d'entrée
-ENTRYPOINT ["/app/backend/entrypoint.sh"]
+# Make entrypoint executable
+RUN chmod +x backend/entrypoint.sh
 
 # Définir un volume pour la base de données et les logs
-VOLUME ["/app/backend/volume/db", "/app/backend/volume/logs"]
+# VOLUME ["/app/backend/db", "/app/backend/logs"]
 
-EXPOSE 8000
-
-# NOTE deja une commande dans le fichier compose
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+WORKDIR /app
+ENTRYPOINT ["./backend/entrypoint.sh"]
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

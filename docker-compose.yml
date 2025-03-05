@@ -8,8 +8,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/db:/app/db
-      - ./backend/logs:/app/logs
+      - ./backend/db:/app/backend/db
+      - ./backend/logs:/app/backend/logs
 
     environment:
       - TESTING=false

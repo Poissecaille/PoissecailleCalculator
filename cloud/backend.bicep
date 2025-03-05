@@ -22,6 +22,12 @@ param fileShareName string
 @description('The username of the Azure Container Registry')
 param acrName string
 
+// @secure()
+// @description('The key of the storage account')
+// param storageAccountKey string7
+@description('Storage account id')
+param storageAccountId string
+
 @secure()
 @description('The password of the Azure Container Registry')
 param acrPassword string
@@ -40,30 +46,22 @@ param acrPassword string
 //   kind: 'linux'
 // }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: storageAccountName
-  location: location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-}
+// resource existingStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
+//   name: storageAccountName
+// }
 
-// Récupération des clés du compte de stockage
-var storageAccountKey = storageAccount.listKeys().keys[0].value
+// resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-05-01' = {
+//   parent: existingStorageAccount
+//   name: 'default'
+// }
 
-resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-05-01' = {
-  parent: storageAccount
-  name: 'default'
-}
-
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-05-01' = {
-  parent: fileService
-  name: fileShareName
-  properties: {
-    accessTier: 'TransactionOptimized'
-  }
-}
+// resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-05-01' = {
+//   parent: fileService
+//   name: fileShareName
+//   properties: {
+//     accessTier: 'TransactionOptimized'
+//   }
+// }
 
 // Backend Web App
 resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
@@ -89,7 +87,7 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'DATABASE_URL'
-          value: '/app/db'
+          value: '/app/backend/db'
         }
         {
           name: 'TESTING'
@@ -117,8 +115,8 @@ resource backendApp 'Microsoft.Web/sites@2024-04-01' = {
           type: 'AzureFiles'
           accountName: storageAccountName
           shareName: fileShareName
-          mountPath: '/app/db'
-          accessKey: storageAccountKey
+          mountPath: '/app/backend/db'
+          accessKey: listKeys(storageAccountId, '2023-01-01').keys[0].value
         }
       }
     }

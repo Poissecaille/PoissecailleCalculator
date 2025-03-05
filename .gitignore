@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-.vscode
+
 # C extensions
 *.so
 
@@ -179,3 +179,7 @@ cython_debug/
 # azure
 .bicepparam
 export.sh
+*.zip
+
+.vscode
+sandbox
